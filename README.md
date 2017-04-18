@@ -34,7 +34,7 @@ Set the the following environment variables as you need:
 docker run -d \
    -env SRV_SSL=1 \
    -v /etc/letsencrypt/yourcertname/privkey.pem:/usr/local/apache2/ssl.key \
-   -v /etc/letsencrypt/yourcertname/fullchain.pem://usr/local/apache2/ssl.crt \
+   -v /etc/letsencrypt/yourcertname/fullchain.pem:/usr/local/apache2/ssl.crt \
    -p 443:443 \
    rimelek/httpd24
 ```
