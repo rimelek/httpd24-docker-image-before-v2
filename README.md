@@ -42,7 +42,7 @@ docker run -d \
 ### HTTP Authentication
 
 ```bash
-docker run --rm -i rimelek/httpd24 /bin/bash -c "htpasswd -nb YOURUSERNAME YOURPASSORD" >> .htpasswd
+docker run --rm -i rimelek/httpd24 /bin/bash -c "htpasswd -nb YOURUSERNAME YOURPASSWORD" >> .htpasswd
 docker run -d \
    -v `pwd`/.htpasswd:/usr/local/apache2/.htpasswd \
    -p 80:80 \
