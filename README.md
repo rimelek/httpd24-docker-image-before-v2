@@ -36,17 +36,17 @@ docker run -d \
    -v /etc/letsencrypt/yourcertname/privkey.pem:/usr/local/apache2/ssl.key \
    -v /etc/letsencrypt/yourcertname/fullchain.pem:/usr/local/apache2/ssl.crt \
    -p 443:443 \
-   rimelek/httpd24
+   itsziget/httpd24
 ```
 
 ### HTTP Authentication
 
 ```bash
-docker run --rm -i rimelek/httpd24 /bin/bash -c "htpasswd -nb YOURUSERNAME YOURPASSWORD" >> .htpasswd
+docker run --rm -i itsziget/httpd24 /bin/bash -c "htpasswd -nb YOURUSERNAME YOURPASSWORD" >> .htpasswd
 docker run -d \
    -v `pwd`/.htpasswd:/usr/local/apache2/.htpasswd \
    -p 80:80 \
-   rimelek/httpd24
+   itsziget/httpd24
 ```
 
 ### Simplest way to use PHP-FPM
@@ -65,7 +65,7 @@ docker run -d \
    --env SRV_PHP=1 \
    -p "80:80" \
    --link php \
-   rimelek/httpd24
+   itsziget/httpd24
    
 ```
 
@@ -85,7 +85,7 @@ docker run -d \
    --env SRV_PHP=1 \
    -p "80:80" \
    --network phptest \
-   rimelek/httpd24
+   itsziget/httpd24
    
 ```
 
@@ -104,8 +104,8 @@ docker run -d \
    --env SRV_PHP=1 \
    --env SRV_PHP_HOST=localhost \
    --network container:php \
-   rimelek/httpd24
+   itsziget/httpd24
    
 ```
 
-**Tip:** If you need PHP with more modules than the official version built with, use my version: [https://hub.docker.com/r/rimelek/php/](https://hub.docker.com/r/rimelek/php/)
+**Tip:** If you need PHP with more modules than the official version built with, use my version: [https://hub.docker.com/r/itsziget/php/](https://hub.docker.com/r/itsziget/php/)

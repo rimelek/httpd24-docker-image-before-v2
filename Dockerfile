@@ -1,6 +1,6 @@
 FROM httpd:2.4
 
-LABEL maintainer "rimelek@rimelek.hu"
+LABEL maintainer="rimelek@it-sziget.hu"
 
 ENV SRV_REVERSE_PROXY_DOMAIN="" \
     SRV_REVERSE_PROXY_CLIENT_IP_HEADER=X-Forwarded-For \
