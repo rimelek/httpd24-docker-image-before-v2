@@ -2,10 +2,19 @@
 
 CONF=/usr/local/apache2/conf/httpd.conf
 PCONF=/usr/local/apache2/conf/extra/app-php.conf
+SCONF=/usr/local/apache2/conf/extra/app-ssl.conf
 RPCONF=/usr/local/apache2/conf/extra/app-reverse-proxy.conf
 
-if [ "${SRV_PHP}" == "" ] || [ "${SRV_PHP}" == "0" ] \
-|| [ "${SRV_PHP}" == "false" ] || [ "${SRV_PHP}" == "no" ]; then
+toBool () {
+    local BOOL=$(echo "${1}" | tr '[:upper:]' '[:lower:]')
+    if [ "${BOOL}" == "true" ] || [ "${BOOL}" == "1" ] || [ "${BOOL}" == "yes" ] || [ "${BOOL}" == "y" ]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+if [ $(toBool "${SRV_PHP}") == "false" ]; then
     sed -i 's/^#*\(\s*Include conf\/extra\/app-php.conf\)/#\1/g' ${CONF}
 else
     sed -i 's/#\(\s*Include conf\/extra\/app-php.conf\)/\1/g' ${CONF}
@@ -24,15 +33,44 @@ else
 fi
 
 
-if [ "${SRV_SSL}" == "" ] || [ "${SRV_SSL}" == "0" ] \
-|| [ "${SRV_SSL}" == "false" ] || [ "${SRV_SSL}" == "no" ]; then
+if [ $(toBool "${SRV_SSL}") == "false" ]; then
     sed -i 's/^#*\(\s*Include conf\/extra\/app-ssl.conf\)/#\1/g' ${CONF}
 else
+    if [ $(toBool "${SRV_LETSENCRYPT}") == "true" ]; then
+        if [ "${CERT_NAME}" == "" ]; then
+            if [ "${SRV_NAME}" != "" ]; then
+                CERT_NAME="${SRV_NAME}"
+            elif [ "${VIRTUAL_HOST}" != "" ]; then
+                CERT_NAME="${VIRTUAL_HOST}"
+            fi
+        fi;
+        if [ "${CERT_NAME}" == "" ]; then
+            >&2 echo "There is no valid CERT_NAME"
+            exit 1;
+        fi
+        if [ "${SRV_CERT}" == "" ]; then
+            SRV_CERT="/etc/letsencrypt/live/${CERT_NAME}/fullchain.pem";
+        fi;
+        if [ "${SRV_CERT_KEY}" == "" ]; then
+            SRV_CERT_KEY="/etc/letsencrypt/live/${CERT_NAME}/privkey.pem"
+        fi;
+    fi
+
+    if [ "${SRV_CERT}" == "" ]; then
+        SRV_CERT="/usr/local/apache2/ssl.crt";
+    fi
+
+    if [ "${SRV_CERT_KEY}" == "" ]; then
+        SRV_CERT_KEY="/usr/local/apache2/ssl.key";
+    fi
+
+    sed -i 's#SSLCertificateFile .*#SSLCertificateFile '${SRV_CERT}'#g' ${SCONF}
+    sed -i 's#SSLCertificateKeyFile .*#SSLCertificateKeyFile '${SRV_CERT_KEY}'#g' ${SCONF}
+
     sed -i 's/#\(\s*Include conf\/extra\/app-ssl.conf\)/\1/g' ${CONF}
 fi
 
-if [ "${SRV_AUTH}" == "" ] || [ "${SRV_AUTH}" == "0" ] \
-|| [ "${SRV_AUTH}" == "false" ] || [ "${SRV_AUTH}" == "no" ]; then
+if [ $(toBool "${SRV_AUTH}") == "false" ]; then
     sed -i 's/^#*\(\s*Include conf\/extra\/app-httpauth.conf\)/#\1/g' ${CONF}
 else
     sed -i 's/#\(\s*Include conf\/extra\/app-httpauth.conf\)/\1/g' ${CONF}

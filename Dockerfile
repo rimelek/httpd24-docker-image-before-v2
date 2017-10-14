@@ -11,7 +11,10 @@ ENV SRV_REVERSE_PROXY_DOMAIN="" \
     SRV_DOCROOT="" \
     SRV_PHP=0 \
     SRV_PHP_HOST=php \
-    SRV_PHP_PORT=9000
+    SRV_PHP_PORT=9000 \
+    SRV_LETSENCRYPT=false \
+    SRV_CERT="" \
+    SRV_CERT_KEY=""
 
 COPY apache2 /usr/local/apache2
 
