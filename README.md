@@ -71,7 +71,7 @@ docker run -d \
 docker run -d \
    --env SRV_SSL=1 \
    -v /path/to/custom.key:/usr/local/apache2/ssl.key \
-   -v /etc/letsencrypt/yourcertname/fullchain.pem:/usr/local/apache2/ssl.crt \
+   -v /path/to/custom.crt:/usr/local/apache2/ssl.crt \
    -p 443:443 \
    itsziget/httpd24
 ```
