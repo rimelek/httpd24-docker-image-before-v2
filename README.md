@@ -1,5 +1,13 @@
 # README
 
+## Supported tags
+
+* latest [Dockerfile](https://github.com/itsziget/httpd24-docker-image/blob/master/Dockerfile) (Currently, it is not always the stable version. Use a version tag in production)
+* 1.1.0, 1.1, 1 [Dockerfile](https://github.com/itsziget/httpd24-docker-image/blob/v1.1.0/Dockerfile)
+* 1.0.0, 1.0 [Dockerfile](https://github.com/itsziget/httpd24-docker-image/blob/v1.0.0/Dockerfile)
+
+## Description
+
 You may want to use this HTTPD 2.4 if you 
  
 - need to quickly run a webserver with PHP-FPM
