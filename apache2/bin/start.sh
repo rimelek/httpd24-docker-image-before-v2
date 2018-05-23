@@ -1,107 +1,90 @@
 #!/usr/bin/env bash
 
-CONF=/usr/local/apache2/conf/httpd.conf
-PCONF=/usr/local/apache2/conf/extra/app-php.conf
-SCONF=/usr/local/apache2/conf/extra/app-ssl.conf
-RPCONF=/usr/local/apache2/conf/extra/app-reverse-proxy.conf
+source "$(dirname "$0")"/app-resources.sh
 
-toBool () {
-    local BOOL=$(echo "${1}" | tr '[:upper:]' '[:lower:]')
-    if [ "${BOOL}" == "true" ] || [ "${BOOL}" == "1" ] || [ "${BOOL}" == "yes" ] || [ "${BOOL}" == "y" ]; then
-        echo "true"
-    else
-        echo "false"
-    fi
-}
+switchConfig "@log" "on";
 
-if [ $(toBool "${SRV_PHP}") == "false" ]; then
-    sed -i 's/^#*\(\s*Include conf\/extra\/app-php.conf\)/#\1/g' ${CONF}
-else
-    sed -i 's/#\(\s*Include conf\/extra\/app-php.conf\)/\1/g' ${CONF}
-fi
+switchModules "${SRV_DISABLE_MODULE}" "off";
+switchModules "${SRV_ENABLE_MODULE}" "on";
 
-if [ "${SRV_PHP_HOST}" == "" ]; then
-    sed -i 's#fcgi://\(.*\):9000#fcgi://php:9000#g' ${PCONF}
-else
-    sed -i 's#fcgi://\(.*\):9000#fcgi://'${SRV_PHP_HOST}':9000#g' ${PCONF}
-fi
+switchConfigs "${SRV_DISABLE_CONF}" "off";
+switchConfigs "${SRV_ENABLE_CONF}" "on";
 
-if [ "${SRV_PHP_PORT}" == "" ]; then
-    sed -i 's#fcgi://\(.*\):(\d+)#fcgi://\1:9000#g' ${PCONF}
-else
-    sed -i 's#fcgi://\(.*\):9000#fcgi://\1:'${SRV_PHP_PORT}'#g' ${PCONF}
-fi
+switchConfig "@php" "${SRV_PHP}";
+switchConfig "@httpauth" "${SRV_AUTH}";
 
+SRV_AUTH_BOOL="$(toBool "${SRV_AUTH}")";
+if [ "${SRV_AUTH_BOOL}" == "true" ]; then
+    if [ -n "${SRV_AUTH_USERS}" ]; then
+        ORIG_IFS="${IFS}";
+        IFS=$'\n\r';
+        PASSWD_PATH="/usr/local/apache2/.htpasswd";
+        if [ -f "${PASSWD_PATH}" ]; then
+            truncate "${PASSWD_PATH}";
+        fi;
+        for LINE in ${SRV_AUTH_USERS}; do
+            AUTH_USER="$(echo "${LINE}" | cut -d ' ' -f1 )";
+            AUTH_PASS="$(echo "${LINE}" | cut -d ' ' -f2- )";
+            echo "'${AUTH_USER}' '${AUTH_PASS}'"
+            htpasswd -nb "${AUTH_USER}" "${AUTH_PASS}" >> "${PASSWD_PATH}"
+        done;
+        IFS="${ORIG_IFS}"
+    fi;
+fi;
+
+setAdminEmail "${SRV_ADMIN}";
+setServerName "${SRV_NAME}";
+
+setDocRoot "${SRV_DOCROOT}";
+allowOverride "${SRV_ALLOW_OVERRIDE}";
 
 if [ $(toBool "${SRV_SSL}") == "false" ]; then
-    sed -i 's/^#*\(\s*Include conf\/extra\/app-ssl.conf\)/#\1/g' ${CONF}
+    switchConfig "@ssl" "off";
 else
-    if [ $(toBool "${SRV_LETSENCRYPT}") == "true" ]; then
-        if [ "${CERT_NAME}" == "" ]; then
-            if [ "${SRV_NAME}" != "" ]; then
-                CERT_NAME="${SRV_NAME}"
-            elif [ "${VIRTUAL_HOST}" != "" ]; then
-                CERT_NAME="${VIRTUAL_HOST}"
-            fi
-        fi;
-        if [ "${CERT_NAME}" == "" ]; then
+    SRV_SSL_LETSENCRYPT_BOOL="$(toBool "${SRV_SSL_LETSENCRYPT}")";
+    CERT_NAME="$(selectCertName)";
+    if [ -z "${SRV_SSL_CERT}" ]; then
+        if [ -z "${CERT_NAME}" ]; then
             >&2 echo "There is no valid CERT_NAME"
             exit 1;
         fi
-        if [ "${SRV_CERT}" == "" ]; then
-            SRV_CERT="/etc/letsencrypt/live/${CERT_NAME}/fullchain.pem";
+        if [ "${SRV_SSL_LETSENCRYPT_BOOL}" == "true" ]; then
+            SRV_SSL_CERT="/etc/letsencrypt/live/${CERT_NAME}/fullchain.pem";
+        else
+            SRV_SSL_CERT="/usr/local/apache2/ssl/${CERT_NAME}.crt";
         fi;
-        if [ "${SRV_CERT_KEY}" == "" ]; then
-            SRV_CERT_KEY="/etc/letsencrypt/live/${CERT_NAME}/privkey.pem"
+    fi;
+    
+    if [ -z "${SRV_SSL_KEY}" ]; then
+         if [ -z "${CERT_NAME}" ]; then
+            >&2 echo "There is no valid CERT_NAME"
+            exit 1;
+        fi
+        if [ "${SRV_SSL_LETSENCRYPT_BOOL}" = "true" ]; then
+            SRV_SSL_KEY="/etc/letsencrypt/live/${CERT_NAME}/privkey.pem";
+        else
+            SRV_SSL_KEY="/usr/local/apache2/ssl/${CERT_NAME}.key";
         fi;
-    fi
+    fi;
+    
+    sed -i 's#SSLCertificateFile .*#SSLCertificateFile '${SRV_SSL_CERT}'#g' ${SCONF}
+    sed -i 's#SSLCertificateKeyFile .*#SSLCertificateKeyFile '${SRV_SSL_KEY}'#g' ${SCONF}
 
-    if [ "${SRV_CERT}" == "" ]; then
-        SRV_CERT="/usr/local/apache2/ssl.crt";
-    fi
+    SRV_SSL_AUTO_BOOL=$(toBool "${SRV_SSL_AUTO}");
+    if [ "${SRV_SSL_AUTO_BOOL}" == "true" ] && [ ! -f "${SRV_SSL_CERT}" ] && [ ! -f "${SRV_SSL_KEY}" ]; then
+        generateSSL "${SRV_SSL_CERT}" "${SRV_SSL_KEY}" "${SRV_NAME}";
+    fi; 
 
-    if [ "${SRV_CERT_KEY}" == "" ]; then
-        SRV_CERT_KEY="/usr/local/apache2/ssl.key";
-    fi
-
-    sed -i 's#SSLCertificateFile .*#SSLCertificateFile '${SRV_CERT}'#g' ${SCONF}
-    sed -i 's#SSLCertificateKeyFile .*#SSLCertificateKeyFile '${SRV_CERT_KEY}'#g' ${SCONF}
-
-    sed -i 's/#\(\s*Include conf\/extra\/app-ssl.conf\)/\1/g' ${CONF}
+    switchConfig "@ssl" "on";
 fi
 
-if [ $(toBool "${SRV_AUTH}") == "false" ]; then
-    sed -i 's/^#*\(\s*Include conf\/extra\/app-httpauth.conf\)/#\1/g' ${CONF}
-else
-    sed -i 's/#\(\s*Include conf\/extra\/app-httpauth.conf\)/\1/g' ${CONF}
-fi
-
-if [ "${SRV_ADMIN}" == "" ]; then
-    sed -i 's/ServerAdmin .*/ServerAdmin webmaster@localhost/g' ${CONF}
-else
-    sed -i 's/ServerAdmin .*/ServerAdmin '${SRV_ADMIN}'/g' ${CONF}
-fi
-
-if [ "${SRV_NAME}" == "" ]; then
-    sed -i 's/ServerName .*/ServerName localhost.localdomain/g' ${CONF}
-else
-    sed -i 's/ServerName .*/ServerName '${SRV_NAME}'/g' ${CONF}
-fi
-
-if [ "${SRV_DOCROOT}" == "" ]; then
-    sed -i 's#DocumentRoot .*#DocumentRoot /usr/local/apache2/htdocs#g' ${CONF}
-    sed -i 's#<Directory ".*"> \#docroot#<Directory "/usr/local/apache2/htdocs"> \#docroot#g' ${CONF}
-else
-    sed -i 's#DocumentRoot .*#DocumentRoot '${SRV_DOCROOT}'#g' ${CONF}
-    sed -i 's#<Directory ".*"> \#docroot#<Directory "'${SRV_DOCROOT}'"> \#docroot#g' ${CONF}
-fi
 
 if [ "${SRV_REVERSE_PROXY_DOMAIN}" == "" ]; then
-    sed -i 's/^#*\(\s*Include conf\/extra\/app-reverse-proxy.conf\)/#\1/g' ${CONF}
+    switchConfig "@reverse-proxy" "off";
 else
-    sed -i 's/#\(\s*Include conf\/extra\/app-reverse-proxy.conf\)/\1/g' ${CONF}
-    sed -i 's/RemoteIPInternalProxy .*/RemoteIPInternalProxy '${SRV_REVERSE_PROXY_DOMAIN}'/g' ${RPCONF}
-    sed -i 's/RemoteIPHeader .*/RemoteIPHeader '${SRV_REVERSE_PROXY_CLIENT_IP_HEADER}'/g' ${RPCONF}
+    switchConfig "@reverse-proxy" "on";
+    sed -i 's~RemoteIPInternalProxy .*~RemoteIPInternalProxy '${SRV_REVERSE_PROXY_DOMAIN}'~g' ${RPCONF}
+    sed -i 's~RemoteIPHeader .*~RemoteIPHeader '${SRV_REVERSE_PROXY_CLIENT_IP_HEADER}'~g' ${RPCONF}
 fi
 
 exec httpd-foreground
