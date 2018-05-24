@@ -25,7 +25,6 @@ if [ "${SRV_AUTH_BOOL}" == "true" ]; then
         for LINE in ${SRV_AUTH_USERS}; do
             AUTH_USER="$(echo "${LINE}" | cut -d ' ' -f1 )";
             AUTH_PASS="$(echo "${LINE}" | cut -d ' ' -f2- )";
-            echo "'${AUTH_USER}' '${AUTH_PASS}'"
             htpasswd -nb "${AUTH_USER}" "${AUTH_PASS}" >> "${PASSWD_PATH}"
         done;
         IFS="${ORIG_IFS}"
@@ -79,12 +78,16 @@ else
 fi
 
 
-if [ "${SRV_REVERSE_PROXY_DOMAIN}" == "" ]; then
+if [ -z "${SRV_REVERSE_PROXY_DOMAIN}${SRV_PROXY_PROTOCOL}" ]; then
     switchConfig "@reverse-proxy" "off";
 else
     switchConfig "@reverse-proxy" "on";
-    sed -i 's~RemoteIPInternalProxy .*~RemoteIPInternalProxy '${SRV_REVERSE_PROXY_DOMAIN}'~g' ${RPCONF}
-    sed -i 's~RemoteIPHeader .*~RemoteIPHeader '${SRV_REVERSE_PROXY_CLIENT_IP_HEADER}'~g' ${RPCONF}
+    if [ -n "${SRV_REVERSE_PROXY_DOMAIN}" ]; then
+        echo "RemoteIPHeader ${SRV_REVERSE_PROXY_CLIENT_IP_HEADER}" >> ${RPCONF};
+        echo "RemoteIPInternalProxy ${SRV_REVERSE_PROXY_DOMAIN}" >> ${RPCONF};
+    else
+        echo "RemoteIPProxyProtocol On" >> ${RPCONF};
+    fi;
 fi
 
 exec httpd-foreground
