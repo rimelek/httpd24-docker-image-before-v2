@@ -20,8 +20,8 @@ ENV SRV_REVERSE_PROXY_DOMAIN="" \
     SRV_PHP_HOST="php" \
     SRV_PHP_PORT="9000" \
     SRV_PHP_TIMEOUT="60" \
-    SRV_ENABLE_CONF="" \
-    SRV_DISABLE_CONF="" \
+    SRV_ENABLE_CONFIG="" \
+    SRV_DISABLE_CONFIG="" \
     SRV_ENABLE_MODULE="" \
     SRV_DISABLE_MODULE="" \
     SRV_ALLOW_OVERRIDE="false" \
@@ -30,8 +30,12 @@ ENV SRV_REVERSE_PROXY_DOMAIN="" \
 COPY apache2 /usr/local/apache2
 
 RUN chmod +x /usr/local/apache2/bin/start.sh /usr/local/apache2/bin/before-start.sh \
- && for i in $(ls -A "/usr/local/apache2/conf/custom-extra"); do \
+ && for i in $(ls -Ap "/usr/local/apache2/conf/custom-extra" | grep -v '/' ); do \
         echo "#Include conf/custom-extra/${i}" >> "/usr/local/apache2/conf/httpd.conf"; \
+    done \
+ && mkdir -p /usr/local/apache2/conf/custom-extra/user \
+ && for i in $(ls -Ap "/usr/local/apache2/conf/custom-extra/user" | grep -v '/' ); do \
+        echo "#Include conf/custom-extra/user/${i}" >> "/usr/local/apache2/conf/httpd.conf"; \
     done \
  && echo "ServerName localhost.localdomain" >> "/usr/local/apache2/conf/httpd.conf" \
  && sed -i 's/^LogLevel .*/LogLevel ${SRV_LOGLEVEL}/g' "/usr/local/apache2/conf/httpd.conf" \

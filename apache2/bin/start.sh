@@ -5,8 +5,8 @@ source "$(dirname "$0")"/app-resources.sh
 switchModules "${SRV_DISABLE_MODULE}" "off";
 switchModules "${SRV_ENABLE_MODULE}" "on";
 
-switchConfigs "${SRV_DISABLE_CONF}" "off";
-switchConfigs "${SRV_ENABLE_CONF}" "on";
+switchConfigs "${SRV_DISABLE_CONFIG}" "off";
+switchConfigs "${SRV_ENABLE_CONFIG}" "on";
 
 switchConfig "@php" "${SRV_PHP}";
 switchConfig "@httpauth" "${SRV_AUTH}";
