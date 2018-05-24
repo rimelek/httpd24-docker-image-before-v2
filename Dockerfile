@@ -24,15 +24,17 @@ ENV SRV_REVERSE_PROXY_DOMAIN="" \
     SRV_DISABLE_CONF="" \
     SRV_ENABLE_MODULE="" \
     SRV_DISABLE_MODULE="" \
-    SRV_ALLOW_OVERRIDE="false"
+    SRV_ALLOW_OVERRIDE="false" \
+    SRV_LOGLEVEL="warn"
 
 COPY apache2 /usr/local/apache2
 
-RUN chmod +x /usr/local/apache2/bin/start.sh \
+RUN chmod +x /usr/local/apache2/bin/start.sh /usr/local/apache2/bin/before-start.sh \
  && for i in $(ls -A "/usr/local/apache2/conf/custom-extra"); do \
         echo "#Include conf/custom-extra/${i}" >> "/usr/local/apache2/conf/httpd.conf"; \
     done \
  && echo "ServerName localhost.localdomain" >> "/usr/local/apache2/conf/httpd.conf" \
+ && sed -i 's/^LogLevel .*/LogLevel ${SRV_LOGLEVEL}/g' "/usr/local/apache2/conf/httpd.conf" \
  && mkdir /usr/local/apache2/ssl
     
 
