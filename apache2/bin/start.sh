@@ -2,8 +2,6 @@
 
 source "$(dirname "$0")"/app-resources.sh
 
-switchConfig "@log" "on";
-
 switchModules "${SRV_DISABLE_MODULE}" "off";
 switchModules "${SRV_ENABLE_MODULE}" "on";
 
