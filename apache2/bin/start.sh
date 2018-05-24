@@ -88,4 +88,6 @@ else
     fi;
 fi
 
+/usr/local/apache2/bin/before-start.sh
+
 exec httpd-foreground
