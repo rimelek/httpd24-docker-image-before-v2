@@ -77,16 +77,16 @@ else
     switchConfig "@ssl" "on";
 fi
 
-
-if [ -z "${SRV_REVERSE_PROXY_DOMAIN}${SRV_PROXY_PROTOCOL}" ]; then
+SRV_PROXY_PROTOCOL_BOOL="$(toBool "${SRV_PROXY_PROTOCOL}")";
+if [ -z "${SRV_REVERSE_PROXY_DOMAIN}" ] && [ "${SRV_PROXY_PROTOCOL_BOOL}" != "true" ]; then
     switchConfig "@reverse-proxy" "off";
 else
     switchConfig "@reverse-proxy" "on";
-    if [ -n "${SRV_REVERSE_PROXY_DOMAIN}" ]; then
+    if [ "${SRV_PROXY_PROTOCOL_BOOL}" == "true" ]; then
+        echo "RemoteIPProxyProtocol On" >> ${RPCONF};
+    elif [  -n "${SRV_REVERSE_PROXY_DOMAI}" ]; then
         echo "RemoteIPHeader ${SRV_REVERSE_PROXY_CLIENT_IP_HEADER}" >> ${RPCONF};
         echo "RemoteIPInternalProxy ${SRV_REVERSE_PROXY_DOMAIN}" >> ${RPCONF};
-    else
-        echo "RemoteIPProxyProtocol On" >> ${RPCONF};
     fi;
 fi
 
