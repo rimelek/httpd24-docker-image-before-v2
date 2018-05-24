@@ -88,7 +88,7 @@ getLineNumberOf () {
 };
 
 getDocRootDirLineNumbers () {
-    local DOC_ROOT="$(cat "${HOME}/httpd-docroot")";
+    local DOC_ROOT="$(getDocRoot)";
     local LINE_START=$(getLineNumberOf '^<Directory "'"${DOC_ROOT}"'">' "${CONF}");
     local DIR_BLOCK_HEIGHT=$(tail -n +${LINE_START} "${CONF}" | getLineNumberOf '^</Directory>');
     local LINE_END=$((LINE_START + DIR_BLOCK_HEIGHT - 1));
@@ -96,9 +96,13 @@ getDocRootDirLineNumbers () {
 }
 
 getDocRoot () {
-    DOC_ROOT="/usr/local/apache2/htdocs";
+    local DOC_ROOT="/usr/local/apache2/htdocs";
+    local SAVED_DOC_ROOT="";
     if [ -f "${HOME}/httpd-docroot" ]; then
-        DOC_ROOT="$(cat "${HOME}/httpd-docroot")";
+        SAVED_DOC_ROOT="$(cat "${HOME}/httpd-docroot")";
+        if [ -n "${SAVED_DOC_ROOT}" ]; then
+            DOC_ROOT="${SAVED_DOCROOT}";
+        fi;
     fi;
     echo "${DOC_ROOT}"
 };
@@ -107,7 +111,7 @@ setDocRoot () {
     local NEW_DOCROOT="${1}";
     local OLD_DOCROOT="$(getDocRoot)";
     if [ -z "${SRV_DOCROOT}" ]; then
-        sed -i 's#DocumentRoot .*#DocumentRoot\s\+'"${OLD_DOCROOT}"'#g' ${CONF}
+        sed -i 's#DocumentRoot .*#DocumentRoot '"${OLD_DOCROOT}"'#g' ${CONF}
         sed -i 's#<Directory\s\+"'"${OLD_DOCROOT}"'">#<Directory "/usr/local/apache2/htdocs">#g' ${CONF}
     else
         sed -i 's#DocumentRoot .*#DocumentRoot '${NEW_DOCROOT}'#g' ${CONF}
