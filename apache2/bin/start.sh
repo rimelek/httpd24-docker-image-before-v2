@@ -86,7 +86,11 @@ else
         echo "RemoteIPHeader ${SRV_REVERSE_PROXY_CLIENT_IP_HEADER}" >> ${RPCONF};
         echo "RemoteIPInternalProxy ${SRV_REVERSE_PROXY_DOMAIN}" >> ${RPCONF};
     fi;
-fi
+fi;
+
+if [ -n "${SRV_PROXY_FORWARD_TO}" ]; then
+    switchConfig "@forward" "on";
+fi;
 
 /usr/local/apache2/bin/before-start.sh
 
