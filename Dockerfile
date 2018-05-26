@@ -25,7 +25,10 @@ ENV SRV_REVERSE_PROXY_DOMAIN="" \
     SRV_ENABLE_MODULE="" \
     SRV_DISABLE_MODULE="" \
     SRV_ALLOW_OVERRIDE="false" \
-    SRV_LOGLEVEL="warn"
+    SRV_LOGLEVEL="warn" \
+    SRV_PROXY_PROTOCOL="false" \
+    SRV_PROXY_FORWARD_TO="" \
+    SRV_PROXY_FORWARD_FROM="/"
 
 COPY apache2 /usr/local/apache2
 
