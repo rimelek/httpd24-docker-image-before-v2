@@ -72,6 +72,7 @@ else
         generateSSL "${SRV_SSL_CERT}" "${SRV_SSL_KEY}" "${SRV_NAME}";
     fi; 
 
+    switchModule "ssl" "on";
     switchConfig "@ssl" "on";
 fi
 
