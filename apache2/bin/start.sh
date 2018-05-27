@@ -83,7 +83,7 @@ else
     switchConfig "@reverse-proxy" "on";
     if [ "${SRV_PROXY_PROTOCOL_BOOL}" == "true" ]; then
         echo "RemoteIPProxyProtocol On" >> ${RPCONF};
-    elif [  -n "${SRV_REVERSE_PROXY_DOMAI}" ]; then
+    elif [  -n "${SRV_REVERSE_PROXY_DOMAIN}" ]; then
         echo "RemoteIPHeader ${SRV_REVERSE_PROXY_CLIENT_IP_HEADER}" >> ${RPCONF};
         echo "RemoteIPInternalProxy ${SRV_REVERSE_PROXY_DOMAIN}" >> ${RPCONF};
     fi;
