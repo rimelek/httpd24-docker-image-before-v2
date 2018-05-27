@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-CONF=/usr/local/apache2/conf/httpd.conf
-PCONF=/usr/local/apache2/conf/custom-extra/php.conf
-SCONF=/usr/local/apache2/conf/custom-extra/ssl.conf
-RPCONF=/usr/local/apache2/conf/custom-extra/reverse-proxy.conf
-
 toBool () {
     local BOOL=$(echo "${1}" | tr '[:upper:]' '[:lower:]');
     case ${BOOL} in
@@ -13,6 +8,30 @@ toBool () {
         *) echo "null";
     esac;
 }
+
+getConfigPath () {
+    local CONF_NAME="${1}";
+    local ABSOLUTE="${2}";
+    local ABSOLUTE_BOOL="$(toBool "${ABSOLUTE}")";
+    local CONF_PREFIX="httpd-";
+    local CONF_DIR="conf/extra";
+    
+    if [ -z "${CONF_NAME}" ]; then
+        CONF_PREFIX="";
+        CONF_NAME="httpd";
+        CONF_DIR="conf";
+    elif [ "${CONF_NAME:0:1}" == "@" ]; then
+        CONF_PREFIX="";
+        CONF_NAME="${CONF_NAME:1}";
+        CONF_DIR="conf/custom-extra"
+    fi;
+    
+    if [ "${ABSOLUTE_BOOL}" == "true" ]; then
+        CONF_DIR="/usr/local/apache2/${CONF_DIR}";
+    fi;
+    
+    echo ${CONF_DIR}/${CONF_PREFIX}${CONF_NAME}.conf
+};
 
 switchModule () {
     local MODULE_NAME="${1}";
@@ -32,15 +51,7 @@ switchConfig () {
     local CONF_STATUS="${2}";
     local CONF_STATUS_BOOL=$(toBool "${CONF_STATUS}");
     
-    local CONF_PREFIX="httpd-";
-    local CONF_DIR="extra";
-    if [ "${CONF_NAME:0:1}" == "@" ]; then
-        CONF_PREFIX="";
-        CONF_NAME="${CONF_NAME:1}";
-        CONF_DIR="custom-extra"
-    fi;
-    
-    local INCLUDE_CONF_PATTERN="Include\s\+conf/${CONF_DIR}/${CONF_PREFIX}${CONF_NAME}.conf";
+    local INCLUDE_CONF_PATTERN="Include\s\+$(getConfigPath ${CONF_NAME})";
     
     case ${CONF_STATUS_BOOL} in
         true)  sed -i 's~^\s*#\(\s*'"${INCLUDE_CONF_PATTERN}"'\)~\1~g' ${CONF}; ;;
@@ -179,3 +190,8 @@ selectCertName () {
         echo "${VIRTUAL_HOST}";
     fi;
 };
+
+CONF=$(getConfigPath "" "true");
+PCONF=$(getConfigPath "@php" "true");
+SCONF=$(getConfigPath "@ssl" "true");
+RPCONF=$(getConfigPath "@reverse-proxy" "true");
