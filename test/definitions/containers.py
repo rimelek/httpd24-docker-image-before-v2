@@ -1,16 +1,18 @@
 from seaworthy.definitions import ContainerDefinition
 from seaworthy.logs import output_lines
+import os
 
 
 class HttpdContainer(ContainerDefinition):
-    IMAGE = 'itsziget/httpd24:2.0-dev'
+    IMAGE_REPO = os.getenv('HTTPD_IMAGE_NAME', 'localhost/httpd24')
+    IMAGE_TAG = os.getenv('HTTPD_IMAGE_TAG', 'dev')
     WAIT_PATTERNS = [
         r'Command line: \'httpd -D FOREGROUND\'',
     ]
     WAIT_TIMEOUT = 180.0
 
     def __init__(self, name, environments):
-        super().__init__(name, self.IMAGE, self.WAIT_PATTERNS, self.WAIT_TIMEOUT,
+        super().__init__(name, self.IMAGE_REPO + ':' + self.IMAGE_TAG, self.WAIT_PATTERNS, self.WAIT_TIMEOUT,
                          create_kwargs={'environment': environments})
 
     def exec(self, *cmd):
