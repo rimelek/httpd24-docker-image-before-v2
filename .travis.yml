@@ -1,4 +1,9 @@
 sudo: required
+
+language: python
+
+python: '3.5'
+
 services:
 - docker
 env:
@@ -7,9 +12,11 @@ env:
 
 before_script:
   - docker pull "${HTTPD_IMAGE_NAME}" || true
+  - pip install seaworthy==0.2.1.2
 
 script:
   - docker build --pull --cache-from "${HTTPD_IMAGE_NAME}" --tag "${HTTPD_IMAGE_NAME}" .
+  - HTTPD_IMAGE_TAG=latest py.test
 
 after_script:
   - docker images
@@ -17,15 +24,14 @@ after_script:
 before_deploy:
   - docker login -u "${DOCKER_HUB_USER}" -p "${DOCKER_HUB_PASS}"
   - pip install docker-ci-deploy==0.3.0
+  - pip install semantic_version==2.6.0
+  - chmod +x ./deploy.sh
 
 deploy:
   provider: script
-  script: dcd --version "${TRAVIS_BRANCH}" --version-latest "${HTTPD_IMAGE_NAME}"
-  on:
-    branch: 2.0
+  script: VERSION=${TRAVIS_BRANCH} ./deploy.sh
 
 branches:
   only:
-    - master
-    - 2.0
+    - /^\d+\.\d+(-dev)?$/
     - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
