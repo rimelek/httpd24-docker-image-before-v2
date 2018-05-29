@@ -9,7 +9,7 @@ class HttpdContainer(ContainerDefinition):
     WAIT_PATTERNS = [
         r'Command line: \'httpd -D FOREGROUND\'',
     ]
-    WAIT_TIMEOUT = 180.0
+    WAIT_TIMEOUT = float(os.getenv('HTTPD_WAIT_TIMEOUT', 180.0))
 
     def __init__(self, name, environments):
         super().__init__(name, self.IMAGE_REPO + ':' + self.IMAGE_TAG, self.WAIT_PATTERNS, self.WAIT_TIMEOUT,
