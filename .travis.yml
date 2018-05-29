@@ -23,3 +23,9 @@ deploy:
   script: dcd --version "${TRAVIS_BRANCH}" --version-latest "${HTTPD_IMAGE_NAME}"
   on:
     branch: 2.0
+
+branches:
+  only:
+    - master
+    - 2.0
+    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
