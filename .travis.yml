@@ -16,7 +16,7 @@ before_script:
 
 script:
   - ./build.sh
-  - [ "${TRAVIS_BRANCH}" != "master" ] && HTTPD_IMAGE_TAG="$(git rev-list -n 1 HEAD)" py.test
+  - if [ "${TRAVIS_BRANCH}" != "master" ]; then HTTPD_IMAGE_TAG="$(git rev-list -n 1 HEAD)" py.test; fi;
 
 after_script:
   - docker images
