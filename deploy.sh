@@ -36,7 +36,6 @@ else
 fi;
 
 DEPLOY_DEBUG="";
-DEPLOY_PRINT=""
 while getopts ":d" arg; do
     case ${arg} in
         d) DEPLOY_DEBUG="y"; ;;
@@ -50,7 +49,7 @@ dcdCommandGen () {
         PRE_RELEASE=$(python -c "import semantic_version; print(len(semantic_version.Version('${VERSION}').prerelease) > 0)");
         if [ "${PRE_RELEASE}" == "True" ]; then
             # pre-release versions cannot get latest and major.minor.patch tags.
-            echo dcd ${DRY_RUN}  --version "${VERSION}" "${HTTPD_IMAGE_NAME}"
+            echo dcd ${DRY_RUN} --version "${VERSION}" "${HTTPD_IMAGE_NAME}"
         else
             echo dcd ${DRY_RUN} --version "${VERSION}" --version-semver "${HTTPD_IMAGE_NAME}";
         fi;
