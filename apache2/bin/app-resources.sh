@@ -188,6 +188,8 @@ selectCertName () {
         echo "${SRV_NAME}";
     elif [ -n "${VIRTUAL_HOST}" ] && [ -n "${VIRTUAL_HOST##*,*}" ]; then
         echo "${VIRTUAL_HOST}";
+    else
+        echo "ssl";
     fi;
 };
 

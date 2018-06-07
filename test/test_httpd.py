@@ -45,8 +45,8 @@ def test_ssl(httpd_ssl):
     output = httpd.exec_conf_check('conf/httpd.conf', '^Include conf/custom-extra/ssl\.conf')
     assert len(output) == 1
 
-    assert httpd.exec_file_exists('ssl/ssl.key')
-    assert httpd.exec_file_exists('ssl/ssl.crt')
+    assert httpd.exec_file_exists('ssl/custom.key')
+    assert httpd.exec_file_exists('ssl/custom.crt')
 
 
 f1 = httpd_fixture('httpd_reverse_proxy_localhost', {
@@ -65,5 +65,5 @@ f3 = httpd_fixture('httpd_proxy_protocol', {
 f4 = httpd_fixture('httpd_ssl', {
     'SRV_SSL': 'true',
     'SRV_SSL_AUTO': 'true',
-    'SRV_SSL_NAME': 'ssl',
+    'SRV_SSL_NAME': 'custom',
 })
