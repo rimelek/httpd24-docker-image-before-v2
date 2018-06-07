@@ -28,11 +28,11 @@ if [ "${TRAVIS_BRANCH}" == "master" ]; then
         exit 1;
     fi;
     docker pull "${HTTPD_IMAGE_NAME}:${LATEST_VERSION}" || exit $?
-    docker tag "${HTTPD_IMAGE_NAME}:${LATEST_VERSION}" "latest"
+    docker tag "${HTTPD_IMAGE_NAME}:${LATEST_VERSION}" "${HTTPD_IMAGE_NAME}:latest"
 else
     # we cannot use dcd --version and set the tag of the built image other than latest
     # (must not push latest without set the exact semantic version as latest)
-    docker tag "${HTTPD_IMAGE_NAME}:${GIT_HASH}" "latest"
+    docker tag "${HTTPD_IMAGE_NAME}:${GIT_HASH}" "${HTTPD_IMAGE_NAME}:latest"
 fi;
 
 DEPLOY_DEBUG="";
