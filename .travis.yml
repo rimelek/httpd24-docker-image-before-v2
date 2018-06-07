@@ -11,12 +11,12 @@ env:
     secure: q+XAO2nUC2TGVgmjhS7g2y3TclLGgZN9M2qbgtkzvOlb+WAnkcKl40na9uEtQL7zMqsM6yFl77Kto723B5kLZ3rActOt9k9B+4eEhxfnpupxuqB5JqR81kA+zOPDz9kvV1nQj5J7BW3ukmOg47OIIrxMuhPLw+VKm/EJHIjdU7KnwvZnWWPAMTAoC3gFhGLBETa4A29QRUeP6JM8dZSnV9jZthPL3AaoqTOtHij386oS0mhAFe+5AicwwU8EU8im+GBvS/WlZsi70IQrOEpLUVZyX23dLgzH5A2+JsZKEyl+v0be1bzNVJe+GooW9QY11tTQXqTy0EiFdH2H1YX6pgLSruN5nQrRj/ZTKeNfwm44AJufBFr7jcSQ1cIwzUgGCJLAc87D7rIm15J48oZCkMHerzdZmRrZ2lmL2SC0BVbFfm1n8Xr2K8DyO64LdtTzVPtC8jH6WEKLezzRN6s3nLuFOwamW/RQX/MrcdNdrwAUtf0vIGxw/Sg71Zmauj45H3qE+b/NeWRWeIy3Ln7Z9eW7f1kfhCYziQbHN8r0CIEQq9E9WmhWbyg4XRmAMqqm9dvSJvKyzRIGijJSadmkboDrirLKU6z8sw5hDVWCENXqyCQqiHxSnZ6u+qXzqiCrhA6aPy0w1GcL3+At2dSxcYQ1PEgwR6Gqg09Ea4g+3LU=
 
 before_script:
-  - docker pull "${HTTPD_IMAGE_NAME}" || true
   - pip install seaworthy==0.2.1.2
+  - chmod +x ./build.sh
 
 script:
-  - docker build --pull --cache-from "${HTTPD_IMAGE_NAME}" --tag "${HTTPD_IMAGE_NAME}" .
-  - HTTPD_IMAGE_TAG=latest py.test
+  - ./build.sh
+  - [ "${TRAVIS_BRANCH}" != "master" ] && HTTPD_IMAGE_TAG="$(git rev-list -n 1 HEAD)" py.test
 
 after_script:
   - docker images
@@ -29,7 +29,9 @@ before_deploy:
 
 deploy:
   provider: script
-  script: VERSION=${TRAVIS_BRANCH} ./deploy.sh
+  script: ./deploy.sh
+  on:
+    all_branches: true
 
 branches:
   only:
