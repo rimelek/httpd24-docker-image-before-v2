@@ -22,7 +22,7 @@ after_script:
   - docker images
 
 before_deploy:
-  - docker login -u "${DOCKER_HUB_USER}" -p "${DOCKER_HUB_PASS}"
+  - echo "${DOCKER_HUB_PASS}" | docker login -u "${DOCKER_HUB_USER}" --password-stdin
   - pip install docker-ci-deploy==0.3.0
   - pip install semantic_version==2.6.0
   - chmod +x ./deploy.sh
