@@ -1,4 +1,6 @@
 from test.definitions.containers import HttpdContainer
+from pathlib import Path
+import os
 
 
 def httpd_fixture(name, *params):
@@ -39,14 +41,26 @@ def test_proxy_protocol(httpd_proxy_protocol):
     assert len(output) == 1
 
 
-def test_ssl(httpd_ssl):
-    httpd = httpd_ssl
+if os.getenv('PYTEST_SKIP_SSL') != '1':
+    def test_ssl(httpd_ssl):
+        httpd = httpd_ssl
 
-    output = httpd.exec_conf_check('conf/httpd.conf', '^Include conf/custom-extra/ssl\.conf')
-    assert len(output) == 1
+        output = httpd.exec_conf_check('conf/httpd.conf', '^Include conf/custom-extra/ssl\.conf')
+        assert len(output) == 1
 
-    assert httpd.exec_file_exists('ssl/custom.key')
-    assert httpd.exec_file_exists('ssl/custom.crt')
+        assert httpd.exec_file_exists('ssl/custom.key')
+        assert httpd.exec_file_exists('ssl/custom.crt')
+
+
+def test_htaccess(httpd_htaccess):
+    httpd = httpd_htaccess
+
+    client = httpd.http_client()
+    response = client.get('/welcome.html')
+
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "Welcome here!" in response.text
 
 
 f1 = httpd_fixture('httpd_reverse_proxy_localhost', {
@@ -66,4 +80,12 @@ f4 = httpd_fixture('httpd_ssl', {
     'SRV_SSL': 'true',
     'SRV_SSL_AUTO': 'true',
     'SRV_SSL_NAME': 'custom',
+})
+
+f5 = httpd_fixture('httpd_htaccess', {
+    'SRV_ENABLE_MODULE': 'rewrite',
+    'SRV_ALLOW_OVERRIDE': 'true',
+    'SRV_DOCROOT': '/var/www/html'
+}, {
+    Path().absolute().as_posix() + '/test/www': '/var/www/html'
 })

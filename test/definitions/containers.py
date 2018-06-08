@@ -1,5 +1,6 @@
 from seaworthy.definitions import ContainerDefinition
 from seaworthy.logs import output_lines
+from test.definitions.client import ContainerHttpClient
 import os
 
 
@@ -11,9 +12,9 @@ class HttpdContainer(ContainerDefinition):
     ]
     WAIT_TIMEOUT = float(os.getenv('HTTPD_WAIT_TIMEOUT', 180.0))
 
-    def __init__(self, name, environments):
+    def __init__(self, name, environments, volumes={}):
         super().__init__(name, self.IMAGE_REPO + ':' + self.IMAGE_TAG, self.WAIT_PATTERNS, self.WAIT_TIMEOUT,
-                         create_kwargs={'environment': environments})
+                         create_kwargs={'environment': environments, 'volumes': volumes})
 
     def exec(self, *cmd):
         return self.inner().exec_run(['bash', '-c', ' '.join(cmd)])
@@ -26,3 +27,8 @@ class HttpdContainer(ContainerDefinition):
     def exec_file_exists(self, file):
         output = output_lines(self.exec('[ -f ' + file + ' ] && echo 1 || 0'));
         return output[0] == '1'
+
+    def http_client(self, port=None, host=None):
+        client = ContainerHttpClient.for_container(self, container_port=port, container_host=host)
+        self._http_clients.append(client)
+        return client
