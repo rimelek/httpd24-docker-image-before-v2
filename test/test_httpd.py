@@ -1,4 +1,5 @@
 from test.definitions.containers import HttpdContainer
+from seaworthy.definitions import ContainerDefinition
 from pathlib import Path
 import os
 
@@ -6,6 +7,11 @@ import os
 def httpd_fixture(name, *params):
     c = HttpdContainer(name, *params)
     return c.pytest_fixture(name)
+
+
+def httpd_fixture_with_deps(name, dependencies, *params):
+    c = HttpdContainer(name, *params)
+    return c.pytest_fixture(name, dependencies=dependencies)
 
 
 def test_reverse_proxy_localhost(httpd_reverse_proxy_localhost):
@@ -63,6 +69,19 @@ def test_htaccess(httpd_htaccess):
     assert "Welcome here!" in response.text
 
 
+def test_php(httpd_php, php_container):
+    httpd = httpd_php
+
+    client = httpd.http_client()
+    response = client.get('/welcome/index.php')
+
+    print (response.text)
+
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "Welcome here!" in response.text
+
+
 f1 = httpd_fixture('httpd_reverse_proxy_localhost', {
     'SRV_REVERSE_PROXY_DOMAIN': 'localhost',
 })
@@ -88,4 +107,22 @@ f5 = httpd_fixture('httpd_htaccess', {
     'SRV_DOCROOT': '/var/www/html'
 }, {
     Path().absolute().as_posix() + '/test/www': '/var/www/html'
+})
+
+f6_php = ContainerDefinition(
+    "php_for_httpd24",
+    "php:7.2-fpm-alpine",
+    create_kwargs={
+        "volumes": {
+            Path().absolute().as_posix() + '/test/www': '/var/www/html',
+        }
+    }).pytest_fixture("php_container")
+f6 = httpd_fixture_with_deps('httpd_php', [
+    'php_container',
+], {
+    'SRV_PHP': 'true',
+    'SRV_PHP_HOST': 'php_for_httpd24',
+    'SRV_DOCROOT': '/var/www/html'
+}, {
+    Path().absolute().as_posix() + '/test/www': '/var/www/html',
 })
