@@ -112,7 +112,7 @@ getDocRoot () {
     if [ -f "${HOME}/httpd-docroot" ]; then
         SAVED_DOC_ROOT="$(cat "${HOME}/httpd-docroot")";
         if [ -n "${SAVED_DOC_ROOT}" ]; then
-            DOC_ROOT="${SAVED_DOCROOT}";
+            DOC_ROOT="${SAVED_DOC_ROOT}";
         fi;
     fi;
     echo "${DOC_ROOT}"
