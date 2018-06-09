@@ -12,10 +12,10 @@ env:
 
 before_script:
   - pip install seaworthy==0.2.1.2
-  - chmod +x ./build.sh
+  - chmod +x ./ci/build.sh
 
 script:
-  - ./build.sh
+  - ./ci/build.sh -i "${HTTPD_IMAGE_NAME}" -t "${TRAVIS_TAG}" -b "${TRAVIS_BRANCH}"
   - if [ "${TRAVIS_BRANCH}" != "master" ]; then HTTPD_IMAGE_TAG="$(git rev-list -n 1 HEAD)" py.test; fi;
 
 after_script:
@@ -25,11 +25,11 @@ before_deploy:
   - echo "${DOCKER_HUB_PASS}" | docker login -u "${DOCKER_HUB_USER}" --password-stdin
   - pip install docker-ci-deploy==0.3.0
   - pip install semantic_version==2.6.0
-  - chmod +x ./deploy.sh
+  - chmod +x ./ci/deploy.sh
 
 deploy:
   provider: script
-  script: ./deploy.sh
+  script: ./ci/deploy.sh -i "${HTTPD_IMAGE_NAME}" -t "${TRAVIS_TAG}" -b "${TRAVIS_BRANCH}"
   on:
     all_branches: true
 
