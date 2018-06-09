@@ -54,5 +54,5 @@ echo ${COMMAND}
 if [ "${CI_BRANCH}" != "master" ]; then
     COMMAND='docker build --pull --cache-from "'${CI_IMAGE_NAME}:${VERSION_CACHE}'" --tag "'${CI_IMAGE_NAME}:${GIT_HASH}'" .'
     echo ${COMMAND}
-    [ "${CI_DRY_RUN}" != "y" ] && eval "${CI_DRY_RUN}"
+    [ "${CI_DRY_RUN}" != "y" ] && eval "${COMMAND}"
 fi;
