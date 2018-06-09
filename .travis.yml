@@ -15,8 +15,7 @@ before_script:
   - chmod +x ./ci/build.sh
 
 script:
-  - ./ci/build.sh -i "${HTTPD_IMAGE_NAME}" -t "${TRAVIS_TAG}" -b "${TRAVIS_BRANCH}"
-  - if [ "${TRAVIS_BRANCH}" != "master" ]; then HTTPD_IMAGE_TAG="$(git rev-list -n 1 HEAD)" py.test; fi;
+  - ./ci/build.sh -i "${HTTPD_IMAGE_NAME}" -t "${TRAVIS_TAG}" -b "${TRAVIS_BRANCH}" -T "${HTTPD_WAIT_TIMEOUT}"
 
 after_script:
   - docker images
