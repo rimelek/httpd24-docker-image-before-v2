@@ -16,7 +16,7 @@ CI_IMAGE_NAME=""
 CI_SKIP_TEST=""
 CI_DOCKER_START_TIMEOUT="180"
 
-while getopts ":t:b:i:dhsT" opt; do
+while getopts ":t:b:i:T:dhs" opt; do
     case ${opt} in
         d) CI_DRY_RUN="y"; ;;
         t) CI_TAG="${OPTARG}"; ;;
