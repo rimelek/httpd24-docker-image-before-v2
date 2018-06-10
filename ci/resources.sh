@@ -31,7 +31,7 @@ isTag () {
 }
 
 isMinorBranch () {
-    reqVarNonEmpty TRAVIS_BRANCH
+    reqVarNonEmpty CI_BRANCH
 
     local RESULT="$(echo "${CI_BRANCH}" | sed 's/'${PATTERN_MINOR_BRANCH}'//g')";
     [ -z "${RESULT}" ] && echo 'true' || echo 'false';
