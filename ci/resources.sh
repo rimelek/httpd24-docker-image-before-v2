@@ -38,11 +38,17 @@ isMinorBranch () {
 }
 
 getVersions () {
-    git tag --list 'v[0-9]*' --sort '-v:refname' | trimVersionFlag | grep -i '^'${PATTERN_STABLE_VERSION}'\(-[^ ]\+\)\?$'
+    local BRANCH="${1}";
+    if [ -z "${BRANCH}" ]; then
+        git tag --list 'v[0-9]*' --sort '-v:refname' | trimVersionFlag | grep -i '^'${PATTERN_STABLE_VERSION}'\(-[^ ]\+\)\?$'
+    else
+        local BRANCH_PATTERN=$(echo "${BRANCH}" | sed 's/\./\\./g')
+        git tag --list 'v[0-9]*' --sort '-v:refname' | trimVersionFlag | grep -i '^'${PATTERN_STABLE_VERSION}'\(-[^ ]\+\)\?$' | grep '^'${BRANCH_PATTERN}
+    fi;
 }
 
 getStableVersions () {
-    getVersions | grep -i '^'${PATTERN_STABLE_VERSION}'$'
+    getVersions ${1} | grep -i '^'${PATTERN_STABLE_VERSION}'$'
 }
 
 trimVersionFlag () {
@@ -51,11 +57,11 @@ trimVersionFlag () {
 
 
 getLatestVersion () {
-    getVersions | head -n1
+    getVersions ${1} | head -n1
 }
 
 getLatestStableVersion () {
-    getStableVersions | head -n 1
+    getStableVersions ${1} | head -n 1
 }
 
 isValidSemanticVersion () {
