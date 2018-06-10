@@ -15,7 +15,7 @@ before_script:
   - chmod +x ./ci/build.sh
 
 script:
-  - ./ci/build.sh -i "${HTTPD_IMAGE_NAME}" -t "${TRAVIS_TAG}" -b "${TRAVIS_BRANCH}" -T "${HTTPD_WAIT_TIMEOUT}"
+  - ./ci/build.sh -i "${HTTPD_IMAGE_NAME}" -t "${TRAVIS_TAG}" -b "${TRAVIS_BRANCH}" -T "${HTTPD_WAIT_TIMEOUT}" -e "${TRAVIS_EVENT_TYPE}"
 
 after_script:
   - docker images
