@@ -106,9 +106,10 @@ prepareDCDLatestCommandGen () {
 
     if [ "${CI_BRANCH}" == "master" ]; then
         local LATEST_VERSION="$(getLatestStableVersion)";
-        reqVarNonEmpty LATEST_VERSION
-        echo docker pull "${CI_IMAGE_NAME}:${LATEST_VERSION}"
-        echo docker tag "${CI_IMAGE_NAME}:${LATEST_VERSION}" "${CI_IMAGE_NAME}:latest"
+        if [ -n "${LATEST_VERSION}" ]; then
+            echo docker pull "${CI_IMAGE_NAME}:${LATEST_VERSION}"
+            echo docker tag "${CI_IMAGE_NAME}:${LATEST_VERSION}" "${CI_IMAGE_NAME}:latest"
+        fi;
     else
         echo docker tag "${CI_IMAGE_NAME}:${GIT_HASH}" "${CI_IMAGE_NAME}:latest"
     fi;
