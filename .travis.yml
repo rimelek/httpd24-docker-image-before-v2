@@ -37,5 +37,6 @@ deploy:
 
 branches:
   only:
+    - master
     - /^\d+\.\d+(-dev)?$/
     - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
