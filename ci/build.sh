@@ -2,7 +2,7 @@
 
 set -e
 
-PROJECT_ROOT=$(dirname "$(dirname "$(realpath -s "$0")")");
+PROJECT_ROOT="${0%/*}/..";
 cd "${PROJECT_ROOT}"
 
 GIT_HASH=""
