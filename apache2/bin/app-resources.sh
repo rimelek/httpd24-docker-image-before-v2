@@ -13,24 +13,21 @@ getConfigPath () {
     local CONF_NAME="${1}";
     local ABSOLUTE="${2}";
     local ABSOLUTE_BOOL="$(toBool "${ABSOLUTE}")";
-    local CONF_PREFIX="httpd-";
     local CONF_DIR="conf/extra";
-    
+
     if [ -z "${CONF_NAME}" ]; then
-        CONF_PREFIX="";
         CONF_NAME="httpd";
         CONF_DIR="conf";
     elif [ "${CONF_NAME:0:1}" == "@" ]; then
-        CONF_PREFIX="";
         CONF_NAME="${CONF_NAME:1}";
         CONF_DIR="conf/custom-extra"
     fi;
-    
+
     if [ "${ABSOLUTE_BOOL}" == "true" ]; then
         CONF_DIR="/usr/local/apache2/${CONF_DIR}";
     fi;
-    
-    echo ${CONF_DIR}/${CONF_PREFIX}${CONF_NAME}.conf
+
+    echo ${CONF_DIR}/${CONF_NAME}.conf
 };
 
 switchModule () {
