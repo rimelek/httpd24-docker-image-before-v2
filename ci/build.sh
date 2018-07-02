@@ -61,31 +61,29 @@ reqVarNonEmpty CI_EVENT_TYPE
 if [ "${CI_EVENT_TYPE}" == "cron" ]; then
     if [ "$(isBranch)" ]; then
         if [ "$(isMinorBranch)" == "true" ]; then
-            LATEST_VERSION="$(getLatestStableVersion "$(toMinorVersion "${CI_BRANCH}")")";
-            VERSION_CACHE="${LATEST_VERSION}";
-            COMMAND='docker pull "'${CI_IMAGE_NAME}:${VERSION_CACHE}'"'
-            echo ${COMMAND}
-            [ "${CI_DRY_RUN}" != "y" ] && eval "${COMMAND}"
+            LATEST_VERSION="$(getLatestStableVersion "${CI_BRANCH}")";
+            if [ -n "${LATEST_VERSION}" ]; then
+                VERSION_CACHE="${LATEST_VERSION}";
+                COMMAND='docker pull "'${CI_IMAGE_NAME}:${VERSION_CACHE}'"'
+                echo ${COMMAND}
+                [ "${CI_DRY_RUN}" != "y" ] && eval "${COMMAND}"
 
-            git checkout -qf "v${LATEST_VERSION}"
-            # update git commit hash
-            GIT_HASH="$(git rev-list -n 1 HEAD)"
+                git checkout -qf "v${LATEST_VERSION}"
+                # update git commit hash
+                GIT_HASH="$(git rev-list -n 1 HEAD)"
+                if [ "$(isImageDownloaded "${CI_IMAGE_NAME}:${GIT_HASH}")" ] && [ "$(isParentImageUpgraded "${CI_IMAGE_NAME}:${GIT_HASH}" "httpd:2.4")" == "true" ]; then
+                    COMMAND='docker build --pull --cache-from "'${CI_IMAGE_NAME}:${VERSION_CACHE}'" --tag "'${CI_IMAGE_NAME}:${GIT_HASH}'" --tag "'${CI_IMAGE_NAME}:${GIT_HASH}'" .'
 
-            COMMAND='docker build --pull --cache-from "'${CI_IMAGE_NAME}:${VERSION_CACHE}'" --tag "'${CI_IMAGE_NAME}:${GIT_HASH}'" .'
-            echo ${COMMAND}
-            [ "${CI_DRY_RUN}" != "y" ] && eval "${COMMAND}"
-            if [ "${CI_SKIP_TEST}" != "y" ]; then
-                TEST_COMMAND='HTTPD_IMAGE_NAME="'${CI_IMAGE_NAME}'" HTTPD_IMAGE_TAG="'${GIT_HASH}'" HTTPD_WAIT_TIMEOUT="'${CI_DOCKER_START_TIMEOUT}'" py.test';
-                echo ${TEST_COMMAND}
-                [ "${CI_DRY_RUN}" != "y" ] && eval "${TEST_COMMAND}";
+                    echo ${COMMAND}
+                    [ "${CI_DRY_RUN}" != "y" ] && eval "${COMMAND}"
+
+                    if [ "${CI_SKIP_TEST}" != "y" ]; then
+                        TEST_COMMAND='HTTPD_IMAGE_NAME="'${CI_IMAGE_NAME}'" HTTPD_IMAGE_TAG="'${GIT_HASH}'" HTTPD_WAIT_TIMEOUT="'${CI_DOCKER_START_TIMEOUT}'" py.test';
+                        echo ${TEST_COMMAND}
+                        [ "${CI_DRY_RUN}" != "y" ] && eval "${TEST_COMMAND}";
+                    fi;
+                fi;
             fi;
-
-        elif [ "${CI_BRANCH}" == "master" ]; then
-            LATEST_VERSION="$(getLatestStableVersion)"
-            VERSION_CACHE="${LATEST_VERSION}";
-            COMMAND='docker pull "'${CI_IMAGE_NAME}:${VERSION_CACHE}'"'
-            echo ${COMMAND}
-            [ "${CI_DRY_RUN}" != "y" ] && eval "${COMMAND}"
         fi;
     fi;
 else
@@ -96,7 +94,7 @@ else
     echo ${COMMAND}
     [ "${CI_DRY_RUN}" != "y" ] && eval "${COMMAND}"
 
-    if [ "$(isBranch)" ] && [ "${CI_BRANCH}" != "master" ]; then
+    if [ "$(isBranch)" ]; then
         COMMAND='docker build --pull --cache-from "'${CI_IMAGE_NAME}:${VERSION_CACHE}'" --tag "'${CI_IMAGE_NAME}:${GIT_HASH}'" .'
         echo ${COMMAND}
         [ "${CI_DRY_RUN}" != "y" ] && eval "${COMMAND}"

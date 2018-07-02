@@ -29,12 +29,11 @@ before_deploy:
 
 deploy:
   provider: script
-  script: ./ci/deploy.sh -i "${HTTPD_IMAGE_NAME}" -t "${TRAVIS_TAG}" -b "${TRAVIS_BRANCH}"
+  script: ./ci/deploy.sh -i "${HTTPD_IMAGE_NAME}" -t "${TRAVIS_TAG}" -b "${TRAVIS_BRANCH}" -e "${TRAVIS_EVENT_TYPE}"
   on:
     all_branches: true
 
 branches:
   only:
-    - master
     - /^\d+\.\d+(-dev)?$/
     - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
